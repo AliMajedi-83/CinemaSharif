@@ -39,6 +39,15 @@ chmod +x setup_cinema.sh run_cinema.sh
 ```
 The server will start, and the application/dashboard will automatically open in your default web browser.
 
+<br>
+
+![Cinema](assets/1.png)
+
+<br>
+
+![Cinema](assets/2.png)
+
+
 ## 👥 Development Team
 
 Developed by: Majedi, Kashfian, Tafti
