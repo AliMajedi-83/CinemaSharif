@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load humanize %} 
+
+{% block title %}کیف پول من | سینما شریف{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-8 animate-login">
+    
+    <div class="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-[3rem] p-10 text-white shadow-2xl shadow-emerald-200 relative overflow-hidden">
+        <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
+            <div>
+                <span class="text-emerald-100 text-sm font-bold opacity-80">موجودی فعلی حساب</span>
+                <h2 class="text-5xl font-black mt-2 tracking-tight">
+                    {{ wallet.balance|intcomma }} <span class="text-xl font-normal opacity-70">تومان</span>
+                </h2>
+            </div>
+            
+            <form method="POST" action="{% url 'finance:wallet_deposit' %}" class="bg-white/10 backdrop-blur-md p-6 rounded-3xl border border-white/20 w-full md:w-80">
+                {% csrf_token %}
+                <label class="block text-xs font-bold mb-3">مبلغ افزایش اعتبار (تومان)</label>
+                <div class="flex gap-2">
+                    <input type="number" name="amount" placeholder="مثلاً ۵۰,۰۰۰" min="1000" required
+                           class="w-full bg-white/20 border border-white/30 rounded-xl px-4 py-2 text-white placeholder-white/50 outline-none focus:bg-white/30 transition-all">
+                    <button type="submit" class="bg-white text-emerald-700 px-6 py-2 rounded-xl font-black hover:bg-emerald-50 transition-colors">
+                        واریز
+                    </button>
+                </div>
+                <p class="text-[9px] mt-2 opacity-60">* حداقل مبلغ شارژ طبق ضوابط ۱,۰۰۰ تومان است.</p>
+            </form>
+        </div>
+        <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-slate-50 flex justify-between items-center">
+            <h3 class="font-black text-slate-800 flex items-center gap-2">
+                <span class="bg-emerald-500 w-2 h-6 rounded-full"></span>
+                تاریخچه تراکنش‌ها
+            </h3>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-right text-sm">
+                <thead class="bg-slate-50 text-slate-500 font-bold uppercase">
+                    <tr>
+                        <th class="px-6 py-4">نوع تراکنش</th>
+                        <th class="px-6 py-4">مبلغ</th>
+                        <th class="px-6 py-4">شرح تراکنش</th>
+                        <th class="px-6 py-4">تاریخ و ساعت</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    {% for tx in wallet.transactions.all|dictsortreversed:"created_at" %}
+                    <tr class="hover:bg-slate-50/50 transition-colors">
+                        <td class="px-6 py-4 font-bold">
+                            {% if tx.type == 'deposit' %}
+                                <span class="text-emerald-600">⬆ واریز به حساب</span>
+                            {% else %}
+                                <span class="text-red-500">⬇ برداشت (خرید بلیط)</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 font-black text-slate-700">{{ tx.amount|intcomma }} تومان</td>
+                        <td class="px-6 py-4 text-slate-500 text-xs">{{ tx.description }}</td>
+                        <td class="px-6 py-4 text-slate-400" dir="ltr">{{ tx.created_at|date:"Y/m/d H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-20 text-center text-slate-400 font-bold">
+                            هنوز تراکنشی در حساب شما ثبت نشده است. ☕
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

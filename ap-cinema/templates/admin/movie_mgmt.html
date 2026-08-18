@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-8 animate-login">
+    <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-black text-slate-800">مدیریت بانک فیلم‌ها</h2>
+        <button onclick="openMovieModal()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">
+            + افزودن فیلم جدید
+        </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {% for movie in movies %}
+        <div class="bg-white p-4 rounded-3xl border border-slate-100 flex gap-4 items-center shadow-sm hover:shadow-md transition-all">
+            <div class="w-16 h-16 bg-slate-100 rounded-2xl overflow-hidden flex items-center justify-center">
+                {% if movie.poster %}
+                    <img src="{{ movie.poster.url }}" class="w-full h-full object-cover">
+                {% else %}
+                    <span class="text-2xl">🎬</span>
+                {% endif %}
+            </div>
+            <div class="flex-grow">
+                <h4 class="font-bold text-sm text-slate-800 truncate">{{ movie.title }}</h4>
+                <p class="text-[10px] text-slate-400">{{ movie.director }} </p>
+            </div>
+            
+            <div class="flex flex-col gap-2">
+                <button onclick="openMovieModal('{{ movie.id }}', '{{ movie.title|escapejs }}', '{{ movie.director|escapejs }}', '{{ movie.genre|escapejs }}', '{{ movie.duration_minutes }}', '{{ movie.summary|escapejs }}', '{{ movie.cast|escapejs }}')" 
+                        class="text-blue-400 hover:text-blue-600 transition-colors text-lg" title="ویرایش">
+                    ✎
+                </button>
+
+                <form action="{% url 'core:admin_movie_delete' movie.id %}" method="POST" onsubmit="return confirm('حذف شود؟ ');">
+                    {% csrf_token %}
+                    <button type="submit" class="text-slate-300 hover:text-red-500 transition-colors">🗑</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="movie-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
+        <h3 id="modal-title" class="text-xl font-black mb-6">مشخصات فیلم</h3>
+        
+        <form id="movie-form" method="POST" action="" class="space-y-4" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 mr-2">عنوان فیلم</label>
+                    <input type="text" id="m-title" name="title" placeholder="مثلاً: جدایی..." required class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 mr-2">کارگردان </label>
+                    <input type="text" id="m-director" name="director" placeholder="نام کارگردان" required class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 mr-2">پوستر فیلم (اختیاری)</label>
+                <input type="file" name="poster" accept="image/*" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none">
+            </div>
+
+            <div class="grid grid-cols-3 gap-4">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 mr-2">ژانر</label>
+                    <input type="text" id="m-genre" name="genre" placeholder="درام، کمدی..." required class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 mr-2">مدت (دقیقه)</label>
+                    <input type="number" id="m-duration" name="duration" min="1" placeholder="۹۰" required class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 mr-2">بازیگران اصلی </label>
+                    <input type="text" id="m-cast" name="cast" placeholder="بازیگران..." class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 mr-2">خلاصه داستان</label>
+                <textarea id="m-description" name="description" placeholder="توضیحات کوتاه درباره داستان فیلم..." rows="3" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+
+            <div class="flex gap-4 pt-2">
+                <button type="submit" class="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-all">ذخیره تغییرات</button>
+                <button type="button" onclick="toggleModal('movie-modal')" class="flex-1 bg-slate-100 text-slate-500 font-bold py-3 rounded-xl">انصراف</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
+
+    /**
+     * مدیریت داینامیک مودال برای "ایجاد" یا "ویرایش"
+     * +++ تغییر: اضافه شدن پارامتر cast به تابع +++
+     */
+    function openMovieModal(id = null, title = '', director = '', genre = '', duration = '', description = '', cast = '') {
+        const form = document.getElementById('movie-form');
+        const modalTitle = document.getElementById('modal-title');
+        
+        // فیلدهای فرم
+        document.getElementById('m-title').value = title;
+        document.getElementById('m-director').value = director;
+        document.getElementById('m-genre').value = genre;
+        document.getElementById('m-duration').value = duration;
+        document.getElementById('m-description').value = description;
+        // +++ تغییر: مقداردهی به فیلد بازیگران +++
+        document.getElementById('m-cast').value = cast;
+
+        if (id) {
+        form.action = `/dashboard/movies/edit/${id}/`;
+        modalTitle.innerText = "ویرایش فیلم: " + title;
+        } else {
+        form.action = "{% url 'core:admin_movie_create' %}";
+        modalTitle.innerText = "ثبت فیلم جدید";
+    }
+
+    toggleModal('movie-modal');
+}
+</script>
+{% endblock %}

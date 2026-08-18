@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}خانه | جادوی سینما شریف{% endblock %}
+
+{% block content %}
+<section class="relative h-[500px] flex items-center justify-center text-white -mt-10 mb-20 overflow-hidden rounded-b-[4rem] shadow-2xl">
+    <div class="absolute inset-0 w-full h-full">
+        <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=2070&auto=format&fit=crop" 
+             class="w-full h-full object-cover brightness-[0.3]" alt="Cinema Sharif Hero">
+    </div>
+
+    <div class="relative z-10 text-center px-4 animate-login">
+        <h1 class="text-5xl lg:text-7xl font-black mb-6 tracking-tight">جادوی سینما در دستان شما</h1>
+        <p class="text-xl text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed">
+            با سامانه سینما شریف، بلیت محبوب‌ترین فیلم‌ها را در کمترین زمان رزرو کنید.
+        </p>
+        <div class="flex justify-center">
+            <a href="{% url 'core:cinema_list' %}" class="bg-blue-600 hover:bg-blue-700 px-10 py-4 rounded-2xl font-black transition-all shadow-xl shadow-blue-500/40 flex items-center gap-2">
+                <span>🏢</span> مشاهده لیست سینماها
+            </a>
+        </div>
+    </div>
+</section>
+
+<section id="movies-section" class="max-w-7xl mx-auto px-4 py-8">
+    <div class="bg-white/40 backdrop-blur-md p-8 md:p-12 rounded-[4rem] border border-white/40 shadow-2xl">
+        <div class="flex justify-between items-center mb-10">
+            <h2 class="text-3xl font-black text-slate-800 border-r-8 border-blue-600 pr-5">فیلم‌های در حال اکران</h2>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {% for movie in movies %}
+            <div class="group bg-white/80 backdrop-blur-sm border border-white/40 rounded-[2.5rem] p-4 shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+                <div class="relative h-80 mb-6 overflow-hidden rounded-[2rem]">
+                    {% if movie.poster %}
+                        <img src="{{ movie.poster.url }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="{{ movie.title }}">
+                    {% else %}
+                        <div class="w-full h-full bg-slate-100 flex items-center justify-center text-slate-300 font-bold">بدون پوستر</div>
+                    {% endif %}
+                    
+                    <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-4 py-1.5 rounded-full text-[10px] font-black text-blue-600 shadow-sm">
+                        {{ movie.genre }}
+                    </div>
+                </div>
+
+                <div class="px-2 pb-2">
+                    <h3 class="text-xl font-black text-slate-800 mb-2 truncate">{{ movie.title }}</h3>
+                    <div class="flex items-center gap-2 text-xs text-slate-500 mb-6">
+                        <span>👤 {{ movie.director }}</span>
+                        <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+                        <span>🕒 {{ movie.duration_minutes }} دقیقه</span>
+                    </div>
+                    
+                    <a href="{% url 'core:movie_reserve_direct' movie.id %}" class="block w-full text-center py-4 bg-slate-900 text-white rounded-2xl font-black hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-200 transition-all">
+                        رزرو بلیت
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full py-20 text-center bg-white/50 rounded-[3rem] border-2 border-dashed border-slate-200">
+                <p class="text-slate-500 font-bold">در حال حاضر فیلمی برای نمایش وجود ندارد.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="max-w-7xl mx-auto px-4 py-20">
+    <div class="bg-slate-900/10 backdrop-blur-xl p-10 md:p-16 rounded-[4rem] border border-white/20 shadow-inner">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+            
+            <div class="flex items-start gap-5 group">
+                <div class="bg-emerald-500/20 text-emerald-600 p-5 rounded-3xl text-3xl group-hover:scale-110 transition-transform">⚡</div>
+                <div>
+                    <h4 class="font-black text-slate-800 mb-2 text-lg">رزرو آنی</h4>
+                    <p class="text-xs text-slate-600 leading-loose">انتخاب صندلی و صدور بلیت در کمتر از یک دقیقه.</p>
+                </div>
+            </div>
+
+            <div class="flex items-start gap-5 group">
+                <div class="bg-blue-500/20 text-blue-600 p-5 rounded-3xl text-3xl group-hover:scale-110 transition-transform">💳</div>
+                <div>
+                    <h4 class="font-black text-slate-800 mb-2 text-lg">کیف پول هوشمند</h4>
+                    <p class="text-xs text-slate-600 leading-loose">پرداخت سریع و امن با قابلیت شارژ حساب کاربری.</p>
+                </div>
+            </div>
+
+            <div class="flex items-start gap-5 group">
+                <div class="bg-purple-500/20 text-purple-600 p-5 rounded-3xl text-3xl group-hover:scale-110 transition-transform">🔒</div>
+                <div>
+                    <h4 class="font-black text-slate-800 mb-2 text-lg">امنیت تراکنش</h4>
+                    <p class="text-xs text-slate-600 leading-loose">بهره‌گیری از قفل‌های دیتابیس برای جلوگیری از رزرو همزمان.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+{% endblock %}

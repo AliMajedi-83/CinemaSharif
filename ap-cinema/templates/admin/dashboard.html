@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="space-y-10 animate-login">
+    {% if user.is_staff or user.role == 'admin' %}
+        <h2 class="text-3xl font-black text-slate-800 border-r-4 border-purple-600 pr-4">داشبورد مدیریت سیستم</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-purple-50 border border-purple-100 p-5 rounded-3xl">
+                <p class="text-[10px] font-bold text-purple-400 uppercase">کل بلیت‌های فروخته شده</p>
+                <p class="text-2xl font-black text-purple-700">{{ total_tickets }}</p>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-100 p-5 rounded-3xl">
+                <p class="text-[10px] font-bold text-blue-400 uppercase">فیلم‌های فعال</p>
+                <p class="text-2xl font-black text-blue-700">{{ active_movies }}</p>
+            </div>
+
+            <div class="bg-emerald-50 border border-emerald-100 p-5 rounded-3xl">
+                <p class="text-[10px] font-bold text-emerald-400 uppercase">درآمد کل سیستم</p>
+                <p class="text-2xl font-black text-emerald-700">
+                    {{ total_revenue|intcomma }} <span class="text-xs">تومان</span>
+                </p>
+            </div>
+
+            <div class="bg-orange-50 border border-orange-100 p-5 rounded-3xl">
+                <p class="text-[10px] font-bold text-orange-400 uppercase">کل کاربران</p>
+                <p class="text-2xl font-black text-orange-700">{{ new_users }}</p>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <a href="{% url 'core:admin_cinema_mgmt' %}" class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all group text-center">
+                <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🏢</div>
+                <h3 class="text-xl font-bold text-slate-800">مدیریت سینماها</h3>
+                <p class="text-xs text-slate-400 mt-2">تعریف سینمای جدید و تنظیم ظرفیت سالن</p>
+            </a>
+
+            <a href="{% url 'core:admin_movie_mgmt' %}" class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all group text-center">
+                <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🎬</div>
+                <h3 class="text-xl font-bold text-slate-800">مدیریت فیلم‌ها</h3>
+                <p class="text-xs text-slate-400 mt-2">افزودن فیلم جدید و ویرایش اطلاعات</p>
+            </a>
+
+            <a href="{% url 'core:admin_screening_mgmt' %}" class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all group text-center">
+                <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">📅</div>
+                <h3 class="text-xl font-bold text-slate-800">برنامه اکران</h3>
+                <p class="text-xs text-slate-400 mt-2">تنظیم سانس‌ها و اختصاص فیلم به سینما</p>
+            </a>
+        </div>
+    {% else %}
+        <div class="bg-red-50 text-red-700 p-10 rounded-[3rem] text-center border-2 border-dashed border-red-200">
+            <div class="text-5xl mb-4">🚫</div>
+            <h3 class="text-2xl font-black mb-4">دسترسی محدود شده</h3>
+            <p class="font-bold">شما مجوز لازم برای ورود به پنل مدیریت سامانه سینما شریف را ندارید.</p>
+            <a href="/" class="inline-block mt-6 bg-red-600 text-white px-8 py-3 rounded-2xl font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-200">
+                بازگشت به صفحه اصلی
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

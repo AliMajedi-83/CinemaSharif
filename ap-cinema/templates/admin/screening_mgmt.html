@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="space-y-10 animate-login">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-[3rem] p-10 border border-slate-100 shadow-2xl">
+            <h2 class="text-2xl font-black text-slate-800 mb-8 border-r-4 border-emerald-500 pr-4">تعریف برنامه اکران جدید</h2>
+            
+            <form method="POST" action="{% url 'core:admin_screening_create' %}" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-3 mr-2">انتخاب فیلم</label>
+                        <select name="movie" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500">
+                            {% for movie in movies %}
+                                <option value="{{ movie.id }}">{{ movie.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-3 mr-2">انتخاب سینما</label>
+                        <select name="cinema" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500">
+                            {% for cinema in cinemas %}
+                                <option value="{{ cinema.id }}">{{ cinema.name }} ({{ cinema.capacity }} صندلی)</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-3 mr-2">ساعت شروع</label>
+                        <input type="time" name="start_time" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-3 mr-2">تاریخ اکران</label>
+                        <input type="date" name="date" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-3 mr-2">قیمت بلیت (تومان)</label>
+                    <input type="number" name="price" value="50000" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500" required>
+                </div>
+
+                <button type="submit" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black text-lg hover:bg-emerald-700 shadow-xl shadow-emerald-100 transition-all">
+                    ایجاد برنامه اکران و باز کردن ظرفیت
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-slate-50">
+            <h3 class="font-bold text-slate-700">لیست برنامه‌های اکران فعال</h3>
+        </div>
+        <table class="w-full text-right text-sm">
+            <thead class="bg-slate-50 text-slate-500 font-bold">
+                <tr>
+                    <th class="px-6 py-4 text-right">فیلم</th>
+                    <th class="px-6 py-4 text-right">سینما</th>
+                    <th class="px-6 py-4 text-right">زمان اکران</th>
+                    <th class="px-6 py-4 text-right">قیمت</th>
+                    <th class="px-6 py-4 text-center">عملیات</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                {% for show in showtimes %}
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                    <td class="px-6 py-4 font-black text-slate-800">{{ show.movie.title }}</td>
+                    <td class="px-6 py-4 text-slate-600">{{ show.cinema.name }}</td>
+                    <td class="px-6 py-4 font-mono" dir="ltr">{{ show.start_at|date:"Y/m/d - H:i" }}</td>
+                    <td class="px-6 py-4">{{ show.base_price|intcomma }} تومان</td>
+                    <td class="px-6 py-4 text-center">
+                        <form action="{% url 'core:admin_screening_delete' show.id %}" method="POST" 
+                              onsubmit="return confirm('آیا از حذف این سانس مطمئن هستید؟');" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="bg-red-50 text-red-500 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-all">
+                                🗑 حذف
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-20 text-center text-slate-400 font-bold">هنوز برنامه‌ای برای اکران ثبت نشده است.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

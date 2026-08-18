@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ورود به حساب | سینما شریف{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-20 p-10 bg-white rounded-3xl shadow-2xl border border-slate-100 text-center animate-login">
+    <img src="{% static 'images/logo.png' %}" alt="Logo" class="h-20 mx-auto mb-6">
+    <h2 class="text-2xl font-black text-slate-800 mb-8">ورود به حساب کاربری</h2>
+    
+    <form id="auth-form" method="POST" action="{% url 'accounts:login' %}" class="text-right space-y-6">
+        {% csrf_token %}
+
+        {% if form.errors %}
+            <div class="bg-red-50 border border-red-200 text-red-600 text-xs font-bold p-4 rounded-2xl text-center shake-error">
+                نام کاربری یا رمز عبور اشتباه است! لطفاً مجدد تلاش کنید.
+            </div>
+        {% endif %}
+    
+        <div>
+            <label class="block text-xs font-bold text-slate-500 mb-2 mr-1">شماره تماس</label>
+            <input type="text" id="phone-input" name="username" value="{{ form.username.value|default:'' }}"
+                   class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all" 
+                   placeholder="مثلاً ۰۹۱۲۳۴۵۶۷۸۹" required>
+        </div>
+
+        <div id="password-section" class="{% if not form.errors %}hidden{% endif %}">
+            <label class="block text-xs font-bold text-slate-500 mb-2 mr-1">رمز عبور</label>
+            <input type="password" name="password" 
+                   class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+        </div>
+
+        <button type="button" id="next-btn" 
+                class="w-full bg-slate-900 text-white p-4 rounded-2xl font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-100 {% if form.errors %}hidden{% endif %}">
+            ادامه
+        </button>
+
+        <button type="submit" id="submit-btn" 
+                class="w-full bg-blue-600 text-white p-4 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 {% if not form.errors %}hidden{% endif %}">
+            ورود به سامانه
+        </button>
+    </form>
+    
+    <div id="auth-msg" class="mt-4 text-xs text-center font-bold"></div>
+
+    <div class="mt-8 pt-6 border-t border-slate-100 text-sm font-bold text-slate-500">
+        حساب کاربری ندارید؟ 
+        <a href="{% url 'accounts:register' %}" class="text-blue-600 hover:text-blue-800 transition-colors">اینجا ثبت‌نام کنید</a>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'js/auth_flow.js' %}"></script>
+{% endblock %}

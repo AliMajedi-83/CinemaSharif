@@ -1,0 +1,49 @@
+{% extends 'base.html' %}  {% block content %}
+<div class="reservation-container bg-white/60 backdrop-blur-lg p-8 rounded-3xl shadow-xl border border-white/20">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h2 class="text-2xl font-black text-slate-800">رزرو بلیط: {{ showtime.movie.title }}</h2>
+            <p class="text-slate-600 mt-2">زمان: {{ showtime.start_at|date:"Y-m-d H:i" }} | سینما: {{ showtime.cinema.name }}</p>
+        </div>
+        <div class="text-left">
+            <span class="text-xs font-bold text-slate-400 block">قیمت هر صندلی</span>
+            <span class="text-xl font-black text-blue-600">{{ showtime.base_price }} تومان</span>
+        </div>
+    </div>
+
+    <hr class="border-slate-200 mb-8">
+
+    <form method="post" action="{% url 'core:create_reservation' %}">
+        {% csrf_token %}
+        <input type="hidden" name="showtime_id" value="{{ showtime.id }}">
+        
+        <h3 class="text-lg font-bold text-slate-700 mb-4">انتخاب صندلی‌های مورد نظر:</h3>
+        
+        <div class="grid grid-cols-5 sm:grid-cols-10 gap-3">
+            {% for seat in seats %}
+                <div class="relative">
+                    <input type="checkbox" name="selected_seats" value="{{ seat.number }}" 
+                           id="seat-{{ seat.number }}" class="peer hidden"
+                           {% if not seat.is_available %}disabled{% endif %}>
+                    
+                    <label for="seat-{{ seat.number }}" 
+                           class="flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer
+                           {% if seat.is_available %}
+                               border-slate-200 hover:border-blue-400 peer-checked:bg-blue-600 peer-checked:border-blue-600 peer-checked:text-white
+                           {% else %}
+                               bg-slate-200 border-slate-200 text-slate-400 cursor-not-allowed
+                           {% endif %}">
+                        <span class="text-xs font-black">{{ seat.number }}</span>
+                    </label>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-10 flex justify-end">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-3 rounded-2xl font-black shadow-lg shadow-blue-200 transition-all">
+                تایید و پرداخت نهایی
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

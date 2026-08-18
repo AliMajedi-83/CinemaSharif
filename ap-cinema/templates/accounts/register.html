@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ثبت‌نام جدید | سینما شریف{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-12 p-10 bg-white rounded-3xl shadow-2xl border border-slate-100 animate-login">
+    <h2 class="text-2xl font-black text-slate-800 mb-2">ایجاد حساب کاربری</h2>
+    <p class="text-xs text-slate-500 mb-8">خوشحالیم که به جمع ما می‌پیوندید.</p>
+    
+    <form id="reg-form" method="POST" action="{% url 'accounts:register' %}" class="space-y-4">
+        {% csrf_token %}
+        {% if error %}
+        <div class="bg-red-50 border border-red-200 text-red-600 text-xs font-bold p-4 rounded-2xl text-center shake-error mb-4">
+            {{ error }}
+        </div>
+        {% endif %}
+        <input type="text" name="full_name" placeholder="نام و نام خانوادگی" 
+               class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all" required>
+        
+        <input type="text" name="username" placeholder="نام کاربری (حداقل ۴ کاراکتر)" 
+               class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all" 
+               minlength="4" required>
+        
+        <input type="text" id="phone-input" name="phone" placeholder="شماره تماس (۱۱ رقم)" 
+               class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all" 
+               value="{{ request.GET.phone }}" required>
+        
+        <input type="password" id="pass-input" name="password" placeholder="رمز عبور (حداقل ۸ کاراکتر)" 
+               class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all" 
+               minlength="8" required>
+        
+        <div id="reg-error" class="text-[10px] text-red-600 font-bold hidden px-2"></div>
+
+        <button type="submit" class="w-full bg-blue-600 text-white p-4 rounded-2xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 mt-4 transition-all">
+            تایید و ثبت‌نام نهایی
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // اعتبارسنجی ثانویه سمت کلاینت قبل از سابمیت ثبت‌نام
+    document.getElementById('reg-form').addEventListener('submit', function(e) {
+        const phone = document.getElementById('phone-input').value;
+        const errorDiv = document.getElementById('reg-error');
+        
+        if (phone.length !== 11) {
+            e.preventDefault();
+            errorDiv.innerText = "⚠️ شماره تماس باید ۱۱ رقم باشد.";
+            errorDiv.classList.remove('hidden');
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,22 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.venv/
+db.sqlite3
+*.log
+.env
+.vscode/
+.idea/
+.DS_Store
+Full_Project_Snapshot.ipynb
+project_structure.txt
+1file.py
+Final2.html
+AP-Project-04_05-1.pdf
+media/
+staticfiles/
+Interactive Python Notebook.py
+compare_dirs.py
+Ap project Command

@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="space-y-8 animate-login">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h2 class="text-3xl font-black text-slate-800 border-r-4 border-blue-600 pr-4">
+            فیلم‌های سینما {{ cinema.name|default:"شریف" }}
+        </h2>
+        
+        <form method="GET" action="" class="relative w-full md:w-72">
+            <input type="text" name="q" value="{{ request.GET.q|default:'' }}" 
+                   placeholder="جستجوی نام فیلم..." 
+                   class="w-full bg-white border border-slate-200 rounded-2xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm">
+            <button type="submit" class="absolute left-4 top-3 text-slate-400 hover:text-blue-600">
+                🔍
+            </button>
+        </form>
+    </div>
+
+    <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
+        <div class="flex flex-wrap items-center gap-3">
+            <span class="text-xs font-bold text-slate-400 ml-2">دسته‌بندی ژانر:</span>
+            
+            <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.year %}year={{ request.GET.year }}{% endif %}" 
+               class="px-5 py-2 rounded-xl text-xs font-bold transition-all {% if not request.GET.genre %}bg-blue-600 text-white shadow-lg shadow-blue-200{% else %}bg-slate-50 text-slate-500 hover:bg-slate-100{% endif %}">
+                همه ژانرها
+            </a>
+
+            {% for genre in all_genres %}
+            <a href="?genre={{ genre }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}" 
+               class="px-5 py-2 rounded-xl text-xs font-bold transition-all {% if request.GET.genre == genre %}bg-blue-600 text-white shadow-lg shadow-blue-200{% else %}bg-slate-50 text-slate-500 hover:bg-slate-100{% endif %}">
+                {{ genre }}
+            </a>
+            {% endfor %}
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 border-t border-slate-50 pt-4">
+            <span class="text-xs font-bold text-slate-400 ml-2">سال تولید:</span>
+            {% for year in all_years %}
+            <a href="?year={{ year }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.genre %}&genre={{ request.GET.genre }}{% endif %}" 
+               class="px-4 py-1.5 rounded-lg text-xs font-medium transition-all {% if request.GET.year == year|stringformat:'s' %}bg-slate-800 text-white{% else %}bg-white border border-slate-100 text-slate-600 hover:border-blue-300{% endif %}">
+                {{ year }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {% for movie in movies %}
+        <div class="group bg-white p-5 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+            <div class="aspect-[3/4] bg-slate-100 rounded-[2rem] overflow-hidden mb-4 relative">
+                {% if movie.poster %}
+                    <img src="{{ movie.poster.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                {% else %}
+                    <div class="w-full h-full flex flex-col items-center justify-center text-slate-300">
+                        <span class="text-5xl mb-2">🎬</span>
+                        <span class="text-[10px] font-bold">بدون پوستر</span>
+                    </div>
+                {% endif %}
+                <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full shadow-sm">
+                    <span class="text-[10px] font-black text-blue-600">{{ movie.release_year }}</span>
+                </div>
+            </div>
+
+            <div class="space-y-1 px-2">
+                <h4 class="font-black text-slate-800 truncate">{{ movie.title }}</h4>
+                <div class="flex justify-between items-center">
+                    <p class="text-[11px] text-slate-400 font-medium">{{ movie.genre }}</p>
+                    <p class="text-[11px] text-slate-400">{{ movie.duration_minutes }} دقیقه</p>
+                </div>
+            </div>
+
+            <div class="pt-5 px-2">
+                {% if cinema %}
+                    <a href="{% url 'core:showtime_detail' cinema.id movie.id %}" 
+                    class="block w-full text-center bg-slate-900 text-white py-3 rounded-2xl font-bold text-xs hover:bg-blue-600 transition-colors shadow-lg shadow-slate-200">
+                        مشاهده سانس‌ها و رزرو
+                    </a>
+                {% else %}
+                    {% with first_id=movie.get_first_cinema_id %}
+                        {% if first_id %}
+                            <a href="{% url 'core:showtime_detail' first_id movie.id %}" 
+                            class="block w-full text-center bg-slate-900 text-white py-3 rounded-2xl font-bold text-xs hover:bg-blue-600 transition-colors shadow-lg shadow-slate-200">
+                                مشاهده سانس‌ها و رزرو
+                            </a>
+                        {% else %}
+                            <button disabled class="block w-full text-center border-2 border-slate-200 text-slate-400 py-3 rounded-2xl font-bold text-xs cursor-not-allowed">
+                                فعلاً سانسی موجود نیست
+                            </button>
+                        {% endif %}
+                    {% endwith %}
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-32 text-center bg-white rounded-[3rem] border-2 border-dashed border-slate-100">
+            <div class="text-5xl mb-4">🔎</div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">فیلمی پیدا نشد!</h3>
+            <p class="text-slate-400 text-sm">لطفاً فیلترهای جستجو را تغییر دهید.</p>
+            <a href="{% url 'core:movie_list' %}" class="inline-block mt-6 text-blue-600 font-bold text-sm underline">نمایش همه فیلم‌ها</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

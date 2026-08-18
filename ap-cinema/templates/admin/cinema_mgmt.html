@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-8 animate-login">
+    <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-black text-slate-800">مدیریت سینماها</h2>
+        <button onclick="document.getElementById('add-modal').classList.remove('hidden')" class="bg-purple-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-purple-700 transition">
+            + افزودن سینمای جدید
+        </button>
+    </div>
+
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+        <table class="w-full text-right">
+            <thead class="bg-slate-50 text-slate-500 font-bold text-sm">
+                <tr>
+                    <th class="px-6 py-4">نام سینما</th>
+                    <th class="px-6 py-4">ظرفیت کل</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                {% for cinema in cinemas %}
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                    <td class="px-6 py-4 font-bold text-slate-700">{{ cinema.name }}</td>
+                    <td class="px-6 py-4 text-slate-600">{{ cinema.capacity }} صندلی</td>
+                    <td class="px-6 py-4 text-left"> 
+                        <div class="flex justify-end items-center gap-2">
+                            <button onclick="openEditModal('{{ cinema.id }}', '{{ cinema.name }}', '{{ cinema.capacity }}')" 
+                                    class="bg-blue-50 text-blue-500 px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-500 hover:text-white transition-all">
+                                ویرایش
+                            </button>
+                            
+                            <form action="{% url 'core:admin_cinema_delete' cinema.id %}" method="POST" 
+                                onsubmit="return confirm('آیا از حذف این سینما و تمامی سانس‌های آن مطمئن هستید؟');" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="bg-red-50 text-red-500 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-500 hover:text-white transition-all duration-300">
+                                    حذف سینما
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="add-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-md shadow-2xl">
+        <h3 class="text-xl font-black mb-6">ثبت سینمای جدید</h3>
+        <form method="POST" action="{% url 'core:admin_cinema_create' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="text" name="name" placeholder="نام سینما" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-purple-500" required>
+            <input type="number" name="capacity" placeholder="ظرفیت سالن" min="1" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-purple-500" required>
+            
+            <div class="flex gap-4 pt-4">
+                <button type="submit" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold">ذخیره</button>
+                <button type="button" onclick="document.getElementById('add-modal').classList.add('hidden')" class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-xl font-bold">انصراف</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="edit-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-md shadow-2xl">
+        <h3 class="text-xl font-black mb-6">ویرایش مشخصات سینما</h3>
+        <form id="edit-form" method="POST" action="" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-bold text-slate-400 mb-2 mr-2">نام جدید سینما</label>
+                <input type="text" id="edit-name" name="name" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-400 mb-2 mr-2">ظرفیت جدید</label>
+                <input type="number" id="edit-capacity" name="capacity" min="1" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            
+            <div class="flex gap-4 pt-4">
+                <button type="submit" class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold">بروزرسانی</button>
+                <button type="button" onclick="document.getElementById('edit-modal').classList.add('hidden')" class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-xl font-bold">انصراف</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // +++ بخش جدید: مدیریت باز شدن مودال ویرایش با دیتای صحیح +++
+    function openEditModal(id, name, capacity) {
+        const modal = document.getElementById('edit-modal');
+        const form = document.getElementById('edit-form');
+        const nameInput = document.getElementById('edit-name');
+        const capInput = document.getElementById('edit-capacity');
+
+        // تنظیم مقادیر فعلی در اینپوت‌ها 
+        nameInput.value = name;
+        capInput.value = capacity;
+
+        // داینامیک کردن آدرس اکشن فرم بر اساس آی‌دی سینما
+        form.action = `/dashboard/cinemas/edit/${id}/`; 
+
+        modal.classList.remove('hidden');
+    }
+</script>
+{% endblock %}

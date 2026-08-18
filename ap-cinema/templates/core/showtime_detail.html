@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}رزرو بلیت {{ movie.title }} | سینما شریف{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-12 animate-login">
+    
+    <div class="lg:col-span-1 space-y-6">
+        <div class="rounded-3xl overflow-hidden shadow-2xl border-4 border-white sticky top-24">
+            {% if movie.poster %}
+                <img src="{{ movie.poster.url }}" alt="{{ movie.title }}" class="w-full h-auto object-cover">
+            {% else %}
+                <div class="w-full h-64 bg-slate-200 flex items-center justify-center text-slate-500 font-bold">
+                    فاقد پوستر رسمی
+                </div>
+            {% endif %}
+            
+            <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 p-6 text-white">
+                <h1 class="text-2xl font-black">{{ movie.title }}</h1>
+                <p class="text-xs opacity-70 mt-1">{{ movie.genre }} | {{ movie.duration_minutes }} دقیقه</p>
+            </div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 space-y-4">
+            <h3 class="font-bold text-slate-800 border-r-4 border-blue-600 pr-3">درباره فیلم</h3>
+            <p class="text-slate-500 leading-loose text-sm italic">{{ movie.summary }}</p>
+        </div>
+    </div>
+
+    <div class="lg:col-span-2 space-y-8">
+        <div class="bg-blue-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-blue-100 flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-black">{{ cinema.name }}</h2>
+                <p class="opacity-80 text-xs mt-1">{{ cinema.address }}</p>
+            </div>
+            <div class="bg-white/20 p-3 rounded-2xl text-2xl">🏢</div>
+        </div>
+
+        <form id="reservation-form" method="POST" action="{% url 'core:create_reservation' %}" class="space-y-8">
+            {% csrf_token %}
+            <input type="hidden" name="movie_id" value="{{ movie.id }}">
+            <input type="hidden" name="selected_seats_list" id="selected-seats-list">
+            
+            <section class="space-y-4">
+                <h3 class="font-black text-slate-800 flex items-center gap-2">
+                    <span class="w-2 h-6 bg-purple-600 rounded-full"></span>
+                    ۱. انتخاب سینماهای دیگر
+                </h3>
+                <div class="flex flex-wrap gap-3">
+                    {% for c in available_cinemas %}
+                        <a href="{% url 'core:showtime_detail' c.id movie.id %}" 
+                           class="px-6 py-3 rounded-2xl font-bold transition-all border-2 
+                           {% if c.id == cinema.id %} bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-100 {% else %} bg-white border-slate-100 text-slate-600 hover:border-purple-300 {% endif %}">
+                            {{ c.name }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="space-y-4">
+                <h3 class="font-black text-slate-800 flex items-center gap-2">
+                    <span class="w-2 h-6 bg-blue-600 rounded-full"></span>
+                    ۲. انتخاب سانس اکران
+                </h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {% for showtime in showtimes %}
+                    <label class="relative block cursor-pointer group">
+                        <input type="radio" name="showtime_id" value="{{ showtime.id }}"
+                               data-price="{{ showtime.base_price|floatformat:0 }}"
+                               data-capacity="{{ showtime.capacity }}"
+                               data-reserved-seats="{{ showtime.reserved_seats }}"
+                               data-blocked-seats="{{ showtime.blocked_seats }}"
+                               class="peer hidden showtime-radio" required>
+                        <div class="p-5 bg-white border-2 border-slate-100 rounded-3xl peer-checked:border-blue-600 peer-checked:bg-blue-50 transition-all hover:shadow-md">
+                            <div class="flex flex-col items-center">
+                                <span class="text-xl font-black text-slate-800">{{ showtime.start_at|time:"H:i" }}</span>
+                                <div class="mt-3 px-3 py-1 rounded-full text-[10px] font-bold {% if showtime.remaining > 10 %}bg-emerald-50 text-emerald-600{% else %}bg-red-50 text-red-600{% endif %}">
+                                    {{ showtime.remaining }} صندلی آزاد
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="space-y-4">
+                <h3 class="font-black text-slate-800 flex items-center gap-2">
+                    <span class="w-2 h-6 bg-emerald-500 rounded-full"></span>
+                    ۳. انتخاب صندلی از روی نقشه
+                </h3>
+                <div class="bg-slate-900 p-10 rounded-[3rem] shadow-inner relative overflow-hidden">
+                    <div class="w-3/4 h-1.5 bg-blue-500 mx-auto mb-12 shadow-[0_0_20px_rgba(59,130,246,0.6)] rounded-full"></div>
+                    
+                    <div class="grid grid-cols-5 sm:grid-cols-10 gap-3 max-w-md mx-auto" id="seat-map-container">
+                        <div class="col-span-full text-center text-slate-400 text-sm py-8 font-bold">
+                            لطفاً ابتدا یک سانس اکران را از بالا انتخاب کنید. 👆
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap justify-center gap-6 mt-12">
+                        <div class="flex items-center gap-2 text-[10px] text-slate-400"><span class="w-3 h-3 bg-slate-700 rounded-sm"></span> آزاد</div>
+                        <div class="flex items-center gap-2 text-[10px] text-slate-400"><span class="w-3 h-3 bg-blue-500 rounded-sm"></span> انتخاب شما</div>
+                        <div class="flex items-center gap-2 text-[10px] text-slate-400"><span class="w-3 h-3 bg-red-500 rounded-sm"></span> رزرو شده</div>
+                        <div class="flex items-center gap-2 text-[10px] text-slate-400"><span class="w-3 h-3 bg-orange-400 rounded-sm"></span> خارج از ظرفیت</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-3">
+                        <label class="block text-sm font-bold text-slate-700">تعداد بلیت:</label>
+                        <div class="flex items-center bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                            <span id="seat-count-display" class="font-black text-2xl text-blue-600 ml-2">۰</span>
+                            <span class="text-xs text-slate-400 font-bold">بلیت انتخاب شده</span>
+                            <input type="hidden" id="seat-count-input" name="seat_count" value="0">
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="block text-sm font-bold text-slate-700">مبلغ قابل پرداخت:</label>
+                        <div class="flex items-center bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
+                            <span id="total-price-display" class="font-black text-2xl text-emerald-700 ml-2">۰</span>
+                            <span class="text-xs text-emerald-500 font-bold">تومان</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-2xl flex items-center justify-between border border-dashed border-slate-300">
+                    <div class="flex items-center gap-3">
+                        <div class="text-xl">💳</div>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase">موجودی کیف پول شما</p>
+                            <p class="text-sm font-black text-slate-700">{{ user.wallet.balance|intcomma }} تومان</p>
+                        </div>
+                    </div>
+                    <input type="radio" name="payment_method" value="wallet" checked class="w-5 h-5 accent-blue-600">
+                </div>
+
+                <button type="submit" id="submit-btn" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-lg hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3">
+                    تایید نهایی و صدور بلیت
+                </button>
+            </section>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const seatInput = document.getElementById('seat-count-input');
+        const seatDisplay = document.getElementById('seat-count-display');
+        const priceDisplay = document.getElementById('total-price-display');
+        const hiddenSeatsInput = document.getElementById('selected-seats-list');
+        const submitBtn = document.getElementById('submit-btn');
+        const form = document.getElementById('reservation-form');
+        const mapContainer = document.getElementById('seat-map-container');
+        const showtimeRadios = document.querySelectorAll('.showtime-radio');
+
+        let currentPrice = 0;
+        let selectedSeats = [];
+
+        // به‌روزرسانی رابط کاربری (قیمت و تعداد)
+        function updateUI() {
+            const count = selectedSeats.length;
+            seatInput.value = count;
+            seatDisplay.innerText = count;
+            priceDisplay.innerText = (count * currentPrice).toLocaleString();
+            hiddenSeatsInput.value = selectedSeats.join(',');
+            submitBtn.disabled = count === 0;
+        }
+
+        // رندر کردن نقشه صندلی‌ها
+// +++ جایگزین بخش رندر کردن نقشه در فایل شما +++
+
+    showtimeRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const capacity = parseInt(e.target.dataset.capacity) || 0;
+            const reservedSeats = (e.target.dataset.reservedSeats || "").split(',').filter(Boolean);
+            // دریافت صندلی‌های مسدود شده رندوم از بک‌اند
+            const blockedSeats = (e.target.dataset.blockedSeats || "").split(',').filter(Boolean);
+            
+            currentPrice = parseInt(e.target.dataset.price) || 0;
+
+            mapContainer.innerHTML = '';
+            selectedSeats = [];
+            updateUI();
+
+            // (ایده): حلقه همیشه تا سقف ظرفیت کل (capacity) اجرا می‌شود تا صندلی‌ها حذف نشوند
+            for(let i = 1; i <= capacity; i++) {
+                const seatNum = i.toString();
+                const isReserved = reservedSeats.includes(seatNum);
+                const isBlocked = blockedSeats.includes(seatNum); 
+                
+                const seatDiv = document.createElement('div');
+                let stateClass = 'bg-slate-700 border-slate-800 cursor-pointer hover:scale-110'; 
+                
+                if (isReserved) {
+                    stateClass = 'bg-red-500 border-red-700 opacity-60 cursor-not-allowed reserved';
+                } else if (isBlocked) {
+                    // (تغییر): صندلی‌های مسدود شده به جای حذف شدن، با رنگ نارنجی نمایش داده می‌شوند
+                    stateClass = 'bg-orange-400 border-orange-600 opacity-50 cursor-not-allowed blocked';
+                }
+                
+                seatDiv.className = `seat-item h-8 w-8 rounded-t-xl border-b-4 transition-all ${stateClass}`;
+                seatDiv.title = isBlocked ? "خارج از ظرفیت" : `صندلی شماره ${i}`;
+                seatDiv.innerHTML = `<span class="text-[8px] flex justify-center items-center h-full text-white/50">${i}</span>`;
+
+                // کلیک فقط برای صندلی‌های آزاد فعال است
+                if (!isReserved && !isBlocked) {
+                    seatDiv.addEventListener('click', () => {
+                        if (seatDiv.classList.contains('selected')) {
+                            seatDiv.classList.remove('selected', 'bg-blue-500', 'border-blue-700', 'scale-110');
+                            seatDiv.classList.add('bg-slate-700', 'border-slate-800');
+                            selectedSeats = selectedSeats.filter(id => id !== seatNum);
+                        } else {
+                            if (selectedSeats.length >= 10) {
+                                showToast("حداکثر ۱۰ صندلی مجاز است", "error");
+                                return;
+                            }
+                            seatDiv.classList.remove('bg-slate-700', 'border-slate-800');
+                            seatDiv.classList.add('selected', 'bg-blue-500', 'border-blue-700', 'scale-110');
+                            selectedSeats.push(seatNum);
+                        }
+                        updateUI();
+                    });
+                }
+                mapContainer.appendChild(seatDiv);
+            }
+        });
+    });
+
+    // اعتبارسنجی نهایی فرم قبل از ارسال [cite: 44, 170]
+    form.addEventListener('submit', (e) => {
+        const selectedShowtime = document.querySelector('input[name="showtime_id"]:checked');
+        if (!selectedShowtime) {
+            e.preventDefault();
+            showToast("لطفاً ابتدا یکی از سانس‌های نمایش را انتخاب کنید", "error");
+        } else if (selectedSeats.length === 0) {
+            e.preventDefault();
+            showToast("حداقل یک صندلی باید انتخاب شود", "error");
+        }
+    });
+});
+</script>
+{% endblock %}

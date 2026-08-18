@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}لیست سینماها | سینما شریف{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+        <h2 class="text-3xl font-black text-slate-800 border-r-4 border-blue-600 pr-4">انتخاب سینما</h2>
+        
+        <form method="GET" class="relative w-full md:w-96">
+            <input type="text" name="q" placeholder="جستجوی نام سینما..." 
+                   value="{{ request.GET.q }}"
+                   class="w-full pl-12 pr-4 py-3 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+            <button type="submit" class="absolute left-4 top-3 text-slate-400">
+                🔍
+            </button>
+        </form>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for cinema in cinemas %}
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
+            <div class="flex justify-between items-start mb-4">
+                <div class="bg-blue-50 p-3 rounded-2xl group-hover:bg-blue-600 transition-colors">
+                    🏢
+                </div>
+                <span class="text-xs font-bold text-slate-400">ظرفیت: {{ cinema.capacity }} صندلی</span>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">{{ cinema.name }}</h3>
+            <p class="text-sm text-slate-500 mb-6 leading-relaxed">{{ cinema.address }}</p>
+            
+            <a href="{% url 'core:movie_list_by_cinema' cinema.id %}" 
+               class="block w-full text-center bg-slate-50 text-slate-700 py-3 rounded-xl font-bold group-hover:bg-blue-600 group-hover:text-white transition-all">
+                مشاهده فیلم‌ها
+            </a>
+        </div>
+        {% empty %}
+        <p class="text-center text-slate-500 col-span-full py-20">هیچ سینمایی با این نام یافت نشد. 📌</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
